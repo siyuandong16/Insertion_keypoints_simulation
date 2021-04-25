@@ -31,7 +31,6 @@ class PandaSim():
     self.hole = self.bullet_client.loadURDF("urdf/hole_square/hole_square.urdf", np.array([0.7, 0., 0.02])+self.offset, flags=flags)
     self.plane = self.bullet_client.loadURDF("plane.urdf", useFixedBase=True)
     self.bullet_client.changeDynamics(self.plane,-1,restitution=.95)
-    # self.peg = self.bullet_client.loadURDF("urdf/cube/cube.urdf", np.array([0.7, 0.0, 0.0])+self.offset, flags=flags) 
     self.peg = self.bullet_client.loadURDF("urdf/peg_square/peg_square.urdf", np.array([0.5, 0., 0.06])+self.offset, flags=flags) 
     self.panda = self.bullet_client.loadURDF("franka_panda/panda.urdf", np.array([0,0,0])+self.offset, useFixedBase=True, flags=flags)
     self.state = 0
@@ -126,7 +125,7 @@ class PandaSim():
     pos, o = self.bullet_client.getBasePositionAndOrientation(self.peg)
     return pos, o
 
-  def take_picture(self, camera_id):
+  def take_picture(self):
     width, height, rgbImg, depthImg, segImg  = self.bullet_client.getCameraImage(224,224,self.viewMatrix_1,self.projectionMatrix_1)
     width2, height2, rgbImg2, depthImg2, segImg2 = self.bullet_client.getCameraImage(224,224,self.viewMatrix_2,self.projectionMatrix_1)
     return rgbImg, depthImg, rgbImg2, depthImg2
@@ -134,13 +133,6 @@ class PandaSim():
   def grasp_step(self):
     # step:0) get the ik 1) go to the position 2) grasp 3) lift 
     self.update_state()
-    t0 = time.time()
-    rgb, depth, rgb2, depth2 = self.take_picture(1)
-    rgb = cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR)
-    rgb2 = cv2.cvtColor(np.array(rgb2), cv2.COLOR_RGB2BGR)
-    cv2.imshow('rgb', rgb)
-    cv2.imshow('rgb2', rgb2)
-    cv2.waitKey(1)
     # print(time.time()-t0)
 
     if self.state == 0:

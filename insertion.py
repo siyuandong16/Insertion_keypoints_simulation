@@ -38,6 +38,12 @@ for i in range (100000):
 	panda.bullet_client.submitProfileTiming("full_step")
 
 	panda.grasp_step()
+	rgb, depth, rgb2, depth2 = self.take_picture(1)
+    rgb = cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR)
+    rgb2 = cv2.cvtColor(np.array(rgb2), cv2.COLOR_RGB2BGR)
+    cv2.imshow('rgb', rgb)
+    cv2.imshow('rgb2', rgb2)
+    cv2.waitKey(1)
 	# print(target_joints)
 	p.stepSimulation()
 	# time.sleep(100)
