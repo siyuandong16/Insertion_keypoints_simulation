@@ -41,7 +41,7 @@ class PandaSim():
     self.initial_joints = [-0.038, 0.42, 0.047, -1.50, -0.020, 1.92, 0.797, 0.02, 0.02]
     self.peg_pos, self.peg_orn = self.bullet_client.getBasePositionAndOrientation(self.peg)
     self.hole_pos, self.hole_orn = self.bullet_client.getBasePositionAndOrientation(self.hole)
-    self.state_durations = np.array([0.4, 1.0, 0.4, 0.1, 1.0, 0.4, 1.0, 1.0, 0.4])*1.5
+    self.state_durations = np.array([0.4, 0.6, 0.4, 0.6, 0.6, 0.4, 0.6, 0.6, 0.4])*0.5
     self.t = 0.;
     self.target_joints = []
     self.offset_2 = [0.0, 0.0, 0.005]
@@ -107,11 +107,16 @@ class PandaSim():
         self.bullet_client.POSITION_CONTROL, 0.04 ,force= 50)
     self.bullet_client.submitProfileTiming()
 
-  def set_joints(self,jointPoses):
+  def set_joints(self,jointPoses, velocity=None):
     # self.bullet_client.submitProfileTiming("set joints")
-    for i in range(7):
-        self.bullet_client.setJointMotorControl2(self.panda, i, \
-          self.bullet_client.POSITION_CONTROL, jointPoses[i],force=5 * 240.)
+    if velocity: 
+      for i in range(7):
+          self.bullet_client.setJointMotorControl2(self.panda, i, \
+            self.bullet_client.POSITION_CONTROL, jointPoses[i],targetVelocity = velocity, force=5 * 240.)
+    else:
+      for i in range(7):
+          self.bullet_client.setJointMotorControl2(self.panda, i, \
+            self.bullet_client.POSITION_CONTROL, jointPoses[i], force=5 * 240.)
     self.bullet_client.submitProfileTiming()
 
   def get_IK(self, pos, orn=[1,0,0,0]):
@@ -135,7 +140,8 @@ class PandaSim():
     self.update_state()
     # print(time.time()-t0)
 
-    if self.state == 0:
+    if self.state == 0: 
+      # get the pog postion and open gripper 
       target_pos = [self.peg_pos[0]+self.offset_2[0], self.peg_pos[1]+self.offset_2[1], self.peg_pos[2] +self.offset_2[2]]
       euler_angle = R.from_quat(self.peg_orn).as_euler('zyx', degrees=True)
       euler_angle[2] += 0
@@ -147,12 +153,14 @@ class PandaSim():
       self.open_gripper()
       
     elif self.state == 1:
+      # go to the peg position
       self.set_joints(self.target_joints) 
 
     elif self.state == 2:
       self.close_gripper()
 
     elif self.state == 3:
+      # lift up
       target_pos = [self.peg_pos[0]+self.offset_2[0], self.peg_pos[1]+self.offset_2[1], \
               self.peg_pos[2] +self.offset_2[2] + 0.1]
       euler_angle = R.from_quat(self.peg_orn).as_euler('zyx', degrees=True)
@@ -184,7 +192,7 @@ class PandaSim():
       target_pos = [self.hole_pos[0] + self.offset_3[0], self.hole_pos[1] + self.offset_3[1],\
                                          self.hole_pos[2] + self.offset_3[2] -0.015]
       self.target_joints = self.get_IK(target_pos)
-      self.set_joints(self.target_joints) 
+      self.set_joints(self.target_joints) #, 1.0) 
       # print(self.target_joints)
     elif self.state == 8:
       self.open_gripper()
